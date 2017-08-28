@@ -29,7 +29,7 @@ class OrderRequestedList(mixins.CreateModelMixin,
         print result
         sock.close()
 
-        return Response("Solicitud procesada", status=status.HTTP_202_ACCEPTED)
+        return Response(result, status=status.HTTP_202_ACCEPTED)
 
 
 class OrderStoredList(mixins.ListModelMixin,

@@ -5,6 +5,9 @@ from rest_framework import generics, status ,mixins
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework.response import Response
+import socket
+import json
+
 
 # ###########
 from orchestrator.externalcommunication.apicalls import requestLoginERP
@@ -17,28 +20,16 @@ class LoginUserList(mixins.CreateModelMixin,
 
     def post(self, request, *args, **kwargs):
 
-        user_info = requestLoginERP({
-                'user':request.data['user'],
-                'password':request.data['password']
-            })
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", 9000))
+        data = request.data
+        data = json.dumps(data, ensure_ascii=False)
+        sock.sendall(data)
+        result = sock.recv(1024)
+        print result
+        sock.close()
 
-        if user_info['type'] != Constants.ANSWER_SUCCESS:
-            # error desde el request al ERP
-            return Response({user_info.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            db_user = AppUser.objects.get(user_token=user_info['user_token'])
-            auth_user = AppUserSerializer(db_user)
-            return Response(auth_user.data, status=status.HTTP_202_ACCEPTED)
-        except ObjectDoesNotExist:
-            pass
-
-        auth_user = AppUserSerializer(data=user_info)
-        if auth_user.is_valid():
-            auth_user.save()
-            return Response(auth_user.data, status=status.HTTP_202_ACCEPTED)
-        
-        return Response(auth_user.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result, status=status.HTTP_202_ACCEPTED)
 
 class AppUserList(mixins.ListModelMixin,
                     generics.GenericAPIView):

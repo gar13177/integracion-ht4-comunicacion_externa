@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from orchestrator.apiendpoints.constants import Constants
 from orchestrator.externalcommunication.apicalls import sendNotificationToUsers
 from django.forms.models import model_to_dict
+import json
+import socket
 
 
 class OrderUpdate(mixins.CreateModelMixin, generics.GenericAPIView):
@@ -13,34 +15,13 @@ class OrderUpdate(mixins.CreateModelMixin, generics.GenericAPIView):
     serializer_class = DeliverRequestSerializer
 
     def post(self, request, *args, **kwargs):
-        try:
-            order = OrderStored.objects.get(order_token=request.data['order_token'])
-        except OrderStored.DoesNotExist:
-            order = None
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", 9000))
+        data = request.data
+        data = json.dumps(data, ensure_ascii=False)
+        sock.sendall(data)
+        result = sock.recv(1024)
+        print result
+        sock.close()
 
-        if order is None:
-            return Response(
-                {
-                    'errors': Constants.ANSWER_ORDER_NOT_FOUND
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if request.data['order_status'] == Constants.ORDER_DELIVERED:
-            order.delete()
-            return Response(
-                {
-                    'message': Constants.ANSWER_DELIVER_SUCCESS
-                },
-                status=status.HTTP_202_ACCEPTED
-            )
-
-        order.status = request.data['order_status']
-        order.save()
-
-        sendNotificationToUsers(order)
-
-        return Response(
-            model_to_dict(order),
-            status=status.HTTP_202_ACCEPTED
-        )
+        return Response(result, status=status.HTTP_202_ACCEPTED)
