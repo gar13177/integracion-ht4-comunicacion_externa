@@ -5,6 +5,8 @@ from rest_framework import generics, status ,mixins
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework.response import Response
+from socketIO_client import SocketIO, LoggingNamespace
+import socket
 
 
 # ###########
@@ -57,6 +59,14 @@ class OrderStoredList(mixins.ListModelMixin,
     serializer_class = OrderStoredSerializer
 
     def get(self, request, *args, **kwargs):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", 9000))
+        data = "some data"
+        sock.sendall(data)
+        result = sock.recv(1024)
+        print result
+        sock.close()
+
         return self.list(request, *args, **kwargs)
 
 class OrderStoredDetail(mixins.RetrieveModelMixin,

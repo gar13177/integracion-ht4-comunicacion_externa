@@ -16,6 +16,7 @@ class LoginUserList(mixins.CreateModelMixin,
     serializer_class = LoginUserSerializer
 
     def post(self, request, *args, **kwargs):
+
         user_info = requestLoginERP({
                 'user':request.data['user'],
                 'password':request.data['password']

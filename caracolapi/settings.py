@@ -78,9 +78,10 @@ WSGI_APPLICATION = 'caracolapi.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'caracol',
         'USER': 'postgres',
-        'HOST': 'db2',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',
         'PORT': 5432,
     }
 }
