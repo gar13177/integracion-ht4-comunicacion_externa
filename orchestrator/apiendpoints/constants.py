@@ -12,5 +12,7 @@ class Constants(object):
     ANSWER_ORDER_NOT_FOUND = 'No se encontro la orden'
     ANSWER_DELIVER_SUCCESS = 'Orden entregada correctamente'
     ANSWER_ORDER_UPDATE_SUCCESS = 'Orden actualizada correctamente'
-    
 
+    # Socket info
+    TCP_IP = 'localhost'
+    TCP_PORT = 9000

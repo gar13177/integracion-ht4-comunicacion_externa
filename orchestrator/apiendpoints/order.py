@@ -21,7 +21,7 @@ class OrderRequestedList(mixins.CreateModelMixin,
 
     def post(self, request, *args, **kwargs):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(("localhost", 9000))
+        sock.connect((Constants.TCP_IP, Constants.TCP_PORT))
         data = request.data
         data = json.dumps(data, ensure_ascii=False)
         sock.sendall(data)
@@ -39,7 +39,7 @@ class OrderStoredList(mixins.ListModelMixin,
 
     def get(self, request, *args, **kwargs):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(("localhost", 9000))
+        sock.connect((Constants.TCP_IP, Constants.TCP_PORT))
         data = "Informacion"
         sock.sendall(data)
         result = sock.recv(1024)
