@@ -7,10 +7,12 @@ from django.utils import timezone
 from rest_framework.response import Response
 from socketIO_client import SocketIO, LoggingNamespace
 import socket
+import json
 
 
 # ###########
 from orchestrator.externalcommunication.apicalls import requestNewOrderToERP, sendOrderToProduction
+
 
 class OrderRequestedList(mixins.CreateModelMixin,
                     generics.GenericAPIView):
@@ -18,40 +20,17 @@ class OrderRequestedList(mixins.CreateModelMixin,
     serializer_class = OrderRequestedSerializer
 
     def post(self, request, *args, **kwargs):
-        # new order serializer
-        new_order = OrderRequestedSerializer(data=request.data) 
-        if not new_order.is_valid():
-            return Response(new_order.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            user = AppUser.objects.get(user_token=request.data['user_token'])
-        except ObjectDoesNotExist:
-            return Response({Constants.USER_NOT_FOUND}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(("localhost", 9000))
+        data = request.data
+        data = json.dumps(data, ensure_ascii=False)
+        sock.sendall(data)
+        result = sock.recv(1024)
+        print result
+        sock.close()
 
-        order_billed = requestNewOrderToERP({
-            'user_token':request.data['user_token'],
-            'order':request.data['order']
-            })
+        return Response("Solicitud procesada", status=status.HTTP_202_ACCEPTED)
 
-        if order_billed['type'] != Constants.ANSWER_SUCCESS:
-            # error desde el request al ERP
-            return Response({order_billed.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        order_pending = sendOrderToProduction(order_billed)
-
-        if order_pending['type'] != Constants.ANSWER_SUCCESS:
-            return Response({order_pending.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        if order_pending['status'] == Constants.ORDER_DONE:
-            return Response(order_pending, status=status.HTTP_202_ACCEPTED)
-        
-        order = OrderStoredSerializer(data=order_pending)#, context={'request':request})
-
-        if order.is_valid():
-            order.save(user_token=user)
-            return Response(order.data, status=status.HTTP_202_ACCEPTED)
-
-        return Response(order.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class OrderStoredList(mixins.ListModelMixin,
                     generics.GenericAPIView):
@@ -61,13 +40,13 @@ class OrderStoredList(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(("localhost", 9000))
-        data = "some data"
+        data = "Informacion"
         sock.sendall(data)
         result = sock.recv(1024)
         print result
         sock.close()
 
-        return self.list(request, *args, **kwargs)
+        return Response("Solicitud procesada", status=status.HTTP_202_ACCEPTED)
 
 class OrderStoredDetail(mixins.RetrieveModelMixin,
                     generics.GenericAPIView):
