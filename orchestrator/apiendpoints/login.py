@@ -1,46 +1,31 @@
 from orchestrator.models import LoginUser, AppUser
 from orchestrator.serializers import LoginUserSerializer, AppUserSerializer
-from orchestrator.apiendpoints.constants import Constants
-from rest_framework import generics, status ,mixins
+from rest_framework import generics, status, mixins
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework.response import Response
-import socket
-import json
+from orchestrator.libs.socket_connection import send_data_to_socket
 
 
-# ###########
-from orchestrator.externalcommunication.apicalls import requestLoginERP
-
-
-class LoginUserList(mixins.CreateModelMixin,
-                    generics.GenericAPIView):
+class LoginUserList(mixins.CreateModelMixin, generics.GenericAPIView):
 
     serializer_class = LoginUserSerializer
 
     def post(self, request, *args, **kwargs):
+        response = send_data_to_socket(request.data)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((Constants.TCP_IP, Constants.TCP_PORT))
-        data = request.data
-        data = json.dumps(data, ensure_ascii=False)
-        sock.sendall(data)
-        result = sock.recv(1024)
-        print result
-        sock.close()
+        return Response(response, status=status.HTTP_202_ACCEPTED)
 
-        return Response(result, status=status.HTTP_202_ACCEPTED)
 
-class AppUserList(mixins.ListModelMixin,
-                    generics.GenericAPIView):
+class AppUserList(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = AppUser.objects.all()
     serializer_class = AppUserSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-class AppUserDetail(mixins.RetrieveModelMixin,
-                    generics.GenericAPIView):
+
+class AppUserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     queryset = AppUser.objects.all()
     serializer_class = AppUserSerializer
 
