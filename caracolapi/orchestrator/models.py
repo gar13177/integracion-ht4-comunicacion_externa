@@ -35,6 +35,7 @@ class OrderRequested(models.Model):
     Clase con parametros para hacer una orden
     """
     user_token = models.CharField(max_length=100)
+    request_type = models.CharField(choices=((1,'check'), (2,'pay')),max_length=5)
     order = models.TextField()
 
     class Meta:

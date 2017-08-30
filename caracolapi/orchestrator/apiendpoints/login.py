@@ -12,8 +12,7 @@ class LoginUserList(mixins.CreateModelMixin, generics.GenericAPIView):
     serializer_class = LoginUserSerializer
 
     def post(self, request, *args, **kwargs):
-        response = send_data_to_socket(request.data)
-
+        response = send_data_to_socket({'tipo':1, 'data': request.data})
         return Response(response, status=status.HTTP_202_ACCEPTED)
 
 

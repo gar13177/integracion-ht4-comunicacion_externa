@@ -9,5 +9,7 @@ psycopg2==2.7.3
 Pygments==2.2.0
 pytz==2017.2
 requests==2.18.4
-urllib3==1.22
+six==1.10.0
 socketIO-client==0.7.2
+urllib3==1.22
+websocket-client==0.44.0

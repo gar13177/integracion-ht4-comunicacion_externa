@@ -20,7 +20,7 @@ class OrderRequestedSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = OrderRequested
         order = OrderRequestedDescriptionSerializer
-        fields = ('user_token', 'order')
+        fields = ('user_token', 'order', 'request_type')
 
 class OrderStoredSerializer(serializers.HyperlinkedModelSerializer):
     user_token = serializers.ReadOnlyField(source='user_token.user_token')
